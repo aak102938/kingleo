@@ -47,6 +47,16 @@
             margin-right: 20px;
             border: 3px solid #007bff;
         }
+        #profile-image {
+            cursor: pointer;
+            transition: filter 0.3s;
+        }
+        #profile-image:hover {
+            filter: brightness(0.9);
+        }
+        #image-upload-input {
+            display: none;
+        }
         header h1 {
             font-size: 28px;
             font-weight: 700;
@@ -165,7 +175,8 @@
     <div class="container">
         <div id="schedule-area">
             <header>
-                <img src="https://yt3.ggpht.com/QGXXwPo4iL96yhT6NCbFZ7v0fcNuemEJ2GdiyaCk_Nj_2XqjK09OVZo4iMyN9lEKIKZpFbTInawDHg=s640-c-fcrop64=1,00003333ffffcccc-rw-nd-v1" alt="킹레오 프로필 이미지">
+                <img id="profile-image" src="https://yt3.ggpht.com/QGXXwPo4iL96yhT6NCbFZ7v0fcNuemEJ2GdiyaCk_Nj_2XqjK09OVZo4iMyN9lEKIKZpFbTInawDHg=s640-c-fcrop64=1,00003333ffffcccc-rw-nd-v1" alt="킹레오 프로필 이미지">
+                <input type="file" id="image-upload-input" accept="image/*">
                 <h1>주간 방송 일정표</h1>
             </header>
             <table>
@@ -187,6 +198,32 @@
     </div>
 
     <script>
+        const profileImage = document.getElementById('profile-image');
+        const imageUploadInput = document.getElementById('image-upload-input');
+
+        // 저장된 이미지가 있는지 확인하고 불러오기
+        const savedImage = localStorage.getItem('profileImageSrc');
+        if (savedImage) {
+            profileImage.src = savedImage;
+        }
+
+        profileImage.addEventListener('click', () => {
+            imageUploadInput.click();
+        });
+
+        imageUploadInput.addEventListener('change', (event) => {
+            const file = event.target.files[0];
+            if (file) {
+                const reader = new FileReader();
+                reader.onload = (e) => {
+                    profileImage.src = e.target.result;
+                    // 이미지 데이터를 localStorage에 저장
+                    localStorage.setItem('profileImageSrc', e.target.result);
+                };
+                reader.readAsDataURL(file);
+            }
+        });
+
         const days = ['월요일', '화요일', '수요일', '목요일', '금요일', '토요일', '일요일'];
         const tableBody = document.querySelector('table tbody');
 
