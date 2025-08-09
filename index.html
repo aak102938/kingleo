@@ -1,310 +1,493 @@
 <!DOCTYPE html>
 <html lang="ko">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>킹레오 주간 일정표</title>
     <script src="https://html2canvas.hertzen.com/dist/html2canvas.min.js"></script>
     <style>
-        @import url('https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@400;700&display=swap');
+      @import url("https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@400;700&display=swap");
+      body {
+        font-family: "Noto Sans KR", sans-serif;
+        background-color: #f0f2f5;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        min-height: 100vh;
+        margin: 0;
+        padding: 20px;
+        box-sizing: border-box;
+      }
+      .container {
+        width: 100%;
+        max-width: 800px;
+        background-color: #ffffff;
+        border-radius: 16px;
+        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+        padding: 24px;
+        box-sizing: border-box;
+      }
+      #schedule-area {
+        padding: 20px;
+        border: 1px solid #e0e0e0;
+        border-radius: 12px;
+        background-color: #fafafa;
+      }
+      header {
+        display: flex;
+        align-items: center;
+        margin-bottom: 20px;
+        padding-bottom: 16px;
+        border-bottom: 2px solid #eeeeee;
+      }
+      .header-text-container {
+        display: flex;
+        flex-direction: column;
+        /* align-items: flex-start; /* Align text to the left */
+      }
+      header img {
+        width: 80px;
+        height: 80px;
+        border-radius: 50%;
+        margin-right: 20px;
+        border: 3px solid #007bff;
+      }
+      #profile-image {
+        cursor: pointer;
+        transition: filter 0.3s;
+      }
+      #profile-image:hover {
+        filter: brightness(0.9);
+      }
+      #image-upload-input {
+        display: none;
+      }
+      header h1 {
+        font-size: 28px;
+        font-weight: 700;
+        color: #333;
+        margin: 0;
+      }
+      #schedule-subtitle {
+        font-size: 18px;
+        font-weight: 400;
+        color: #666;
+        margin-top: 5px; /* Adjust as needed */
+        margin-bottom: 10px; /* Adjust as needed */
+      }
+      table {
+        width: 100%;
+        border-collapse: collapse;
+      }
+      th,
+      td {
+        padding: 12px 15px;
+        text-align: left;
+        border-bottom: 1px solid #ddd;
+        vertical-align: middle; /* 요일과 일정내용 세로 중앙 정렬 */
+      }
+      th {
+        background-color: #f8f9fa;
+        font-weight: 700;
+        color: #555;
+      }
+      th:first-child {
+        /* 요일 헤더 중앙 정렬 */
+        text-align: center;
+      }
+      th:nth-child(2) {
+        /* 일정내용 헤더 오른쪽으로 이동 */
+        padding-left: 25px;
+      }
+      td:first-child {
+        width: 80px;
+        font-weight: 700;
+        color: #007bff;
+        text-align: center;
+      }
+      .schedule-input {
+        display: none; /* 평소에는 숨김 */
+        width: 100%;
+        padding: 10px;
+        border: 1px solid #ccc;
+        border-radius: 6px;
+        font-size: 16px;
+        font-family: "Noto Sans KR", sans-serif;
+        box-sizing: border-box;
+      }
+      .schedule-text {
+        display: block;
+        cursor: pointer;
+        min-height: 42px; /* 입력 필드와 높이 맞춤 */
+        line-height: 42px; /* 수직 중앙 정렬 */
+        padding: 0 10px;
+        box-sizing: border-box;
+        color: #777;
+        border-radius: 6px;
+        transition: background-color 0.3s;
+      }
+      /* Subtitle specific styles */
+      .editable-subtitle {
+        cursor: pointer;
+      }
+      .subtitle-input {
+        display: none;
+        width: 100%;
+        padding: 5px 0; /* Adjust padding for subtitle */
+        border: none;
+        border-bottom: 1px solid #ccc;
+        font-size: 18px; /* Match h2 font size */
+        font-weight: 400;
+        color: #666;
+        font-family: "Noto Sans KR", sans-serif;
+        background-color: transparent;
+      }
+      .subtitle-text {
+        display: block;
+        min-height: 24px; /* Adjust height for subtitle */
+        line-height: 24px; /* Adjust line-height for subtitle */
+        color: #666;
+      }
+      .editable-subtitle.editing .subtitle-text {
+        display: none;
+      }
+      .editable-subtitle.editing .subtitle-input {
+        display: block;
+      }
+      .schedule-text:hover {
+        background-color: #f0f0f0;
+      }
+      .editing .schedule-text {
+        display: none; /* 편집 중에는 텍스트 숨김 */
+      }
+      .editing .schedule-input {
+        display: block; /* 편집 중에는 입력 필드 표시 */
+      }
+      .button-container {
+        text-align: center;
+        margin-top: 24px;
+      }
+      #capture-btn {
+        background-color: #007bff;
+        color: white;
+        border: none;
+        padding: 12px 24px;
+        font-size: 18px;
+        font-weight: 700;
+        border-radius: 8px;
+        cursor: pointer;
+        transition: background-color 0.3s, transform 0.2s;
+      }
+      #capture-btn:hover {
+        background-color: #0056b3;
+        transform: translateY(-2px);
+      }
+      #result {
+        text-align: center;
+        margin-top: 20px;
+        font-weight: 700;
+        color: #28a745;
+      }
+
+      /* --- Responsive Styles --- */
+      @media (max-width: 768px) {
         body {
-            font-family: 'Noto Sans KR', sans-serif;
-            background-color: #f0f2f5;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            min-height: 100vh;
-            margin: 0;
-            padding: 20px;
-            box-sizing: border-box;
+          padding: 10px;
         }
         .container {
-            width: 100%;
-            max-width: 800px;
-            background-color: #ffffff;
-            border-radius: 16px;
-            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
-            padding: 24px;
-            box-sizing: border-box;
-        }
-        #schedule-area {
-            padding: 20px;
-            border: 1px solid #e0e0e0;
-            border-radius: 12px;
-            background-color: #fafafa;
+          padding: 16px;
         }
         header {
-            display: flex;
-            align-items: center;
-            margin-bottom: 20px;
-            padding-bottom: 16px;
-            border-bottom: 2px solid #eeeeee;
+          flex-direction: column;
+          align-items: center;
+          text-align: center;
         }
         header img {
-            width: 80px;
-            height: 80px;
-            border-radius: 50%;
-            margin-right: 20px;
-            border: 3px solid #007bff;
-        }
-        #profile-image {
-            cursor: pointer;
-            transition: filter 0.3s;
-        }
-        #profile-image:hover {
-            filter: brightness(0.9);
-        }
-        #image-upload-input {
-            display: none;
+          width: 70px;
+          height: 70px;
+          margin-right: 0;
+          margin-bottom: 15px;
         }
         header h1 {
-            font-size: 28px;
-            font-weight: 700;
-            color: #333;
-            margin: 0;
+          font-size: 24px;
         }
-        table {
-            width: 100%;
-            border-collapse: collapse;
+        table,
+        thead,
+        tbody,
+        th,
+        td,
+        tr {
+          display: block;
         }
-        th, td {
-            padding: 12px 15px;
-            text-align: left;
-            border-bottom: 1px solid #ddd;
-            vertical-align: middle; /* 요일과 일정내용 세로 중앙 정렬 */
+        thead tr {
+          position: absolute;
+          top: -9999px;
+          left: -9999px;
         }
-        th {
-            background-color: #f8f9fa;
-            font-weight: 700;
-            color: #555;
+        tr {
+          border: 1px solid #ddd;
+          border-radius: 8px;
+          margin-bottom: 15px;
+          background-color: #fff;
         }
-        th:first-child { /* 요일 헤더 중앙 정렬 */
-            text-align: center;
+        td {
+          border: none;
+          border-bottom: 1px solid #eee;
+          position: relative;
+          padding-left: 0;
+          padding-right: 0;
         }
-        th:nth-child(2) { /* 일정내용 헤더 오른쪽으로 이동 */
-            padding-left: 25px;
+        td:last-child {
+          border-bottom: 0;
+          padding: 0;
         }
         td:first-child {
-            width: 80px;
-            font-weight: 700;
-            color: #007bff;
-            text-align: center;
+          width: auto;
+          background-color: #f8f9fa;
+          font-weight: 700;
+          text-align: left;
+          border-radius: 8px 8px 0 0;
+          padding: 10px 15px;
+          color: #333;
         }
         .schedule-input {
-            display: none; /* 평소에는 숨김 */
-            width: 100%;
-            padding: 10px;
-            border: 1px solid #ccc;
-            border-radius: 6px;
-            font-size: 16px;
-            font-family: 'Noto Sans KR', sans-serif;
-            box-sizing: border-box;
+          font-size: 15px;
         }
         .schedule-text {
-            display: block;
-            cursor: pointer;
-            min-height: 42px; /* 입력 필드와 높이 맞춤 */
-            line-height: 42px; /* 수직 중앙 정렬 */
-            padding: 0 10px;
-            box-sizing: border-box;
-            color: #777;
-            border-radius: 6px;
-            transition: background-color 0.3s;
-        }
-        .schedule-text:hover {
-            background-color: #f0f0f0;
-        }
-        .editing .schedule-text {
-            display: none; /* 편집 중에는 텍스트 숨김 */
-        }
-        .editing .schedule-input {
-            display: block; /* 편집 중에는 입력 필드 표시 */
-        }
-        .button-container {
-            text-align: center;
-            margin-top: 24px;
+          padding: 0 15px;
         }
         #capture-btn {
-            background-color: #007bff;
-            color: white;
-            border: none;
-            padding: 12px 24px;
-            font-size: 18px;
-            font-weight: 700;
-            border-radius: 8px;
-            cursor: pointer;
-            transition: background-color 0.3s, transform 0.2s;
+          font-size: 16px;
+          padding: 10px 20px;
         }
-        #capture-btn:hover {
-            background-color: #0056b3;
-            transform: translateY(-2px);
+      }
+      @media (max-width: 480px) {
+        header img {
+          width: 60px;
+          height: 60px;
         }
-        #result {
-            text-align: center;
-            margin-top: 20px;
-            font-weight: 700;
-            color: #28a745;
+        header h1 {
+          font-size: 20px;
         }
-
-        /* --- Responsive Styles --- */
-        @media (max-width: 768px) {
-            body { padding: 10px; }
-            .container { padding: 16px; }
-            header { flex-direction: column; align-items: center; text-align: center; }
-            header img { width: 70px; height: 70px; margin-right: 0; margin-bottom: 15px; }
-            header h1 { font-size: 24px; }
-            table, thead, tbody, th, td, tr { display: block; }
-            thead tr { position: absolute; top: -9999px; left: -9999px; }
-            tr { border: 1px solid #ddd; border-radius: 8px; margin-bottom: 15px; background-color: #fff; }
-            td { border: none; border-bottom: 1px solid #eee; position: relative; padding-left: 0; padding-right: 0; }
-            td:last-child { border-bottom: 0; padding: 0;}
-            td:first-child { width: auto; background-color: #f8f9fa; font-weight: 700; text-align: left; border-radius: 8px 8px 0 0; padding: 10px 15px; color: #333; }
-            .schedule-input { font-size: 15px; }
-            .schedule-text { padding: 0 15px; }
-            #capture-btn { font-size: 16px; padding: 10px 20px; }
+        .container {
+          padding: 10px;
         }
-        @media (max-width: 480px) {
-            header img { width: 60px; height: 60px; }
-            header h1 { font-size: 20px; }
-            .container { padding: 10px; }
-            #schedule-area { padding: 15px; }
+        #schedule-area {
+          padding: 15px;
         }
+      }
     </style>
-</head>
-<body>
+  </head>
+  <body>
     <div class="container">
-        <div id="schedule-area">
-            <header>
-                <img id="profile-image" src="https://yt3.ggpht.com/QGXXwPo4iL96yhT6NCbFZ7v0fcNuemEJ2GdiyaCk_Nj_2XqjK09OVZo4iMyN9lEKIKZpFbTInawDHg=s640-c-fcrop64=1,00003333ffffcccc-rw-nd-v1" alt="킹레오 프로필 이미지">
-                <input type="file" id="image-upload-input" accept="image/*">
-                <h1>방송 일정표</h1> 
-            </header>
-            <table>
-                <thead>
-                    <tr>
-                        <th>요일</th>
-                        <th>일정 내용</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    <!-- Data for each day will be generated here by script -->
-                </tbody>
-            </table>
-        </div>
-        <div class="button-container">
-            <button id="capture-btn">일정표 이미지로 저장</button>
-        </div>
-        <div id="result"></div>
+      <div id="schedule-area">
+        <header>
+          <img
+            id="profile-image"
+            src="https://yt3.ggpht.com/QGXXwPo4iL96yhT6NCbFZ7v0fcNuemEJ2GdiyaCk_Nj_2XqjK09OVZo4iMyN9lEKIKZpFbTInawDHg=s640-c-fcrop64=1,00003333ffffcccc-rw-nd-v1"
+            alt="킹레오 프로필 이미지"
+          />
+          <input type="file" id="image-upload-input" accept="image/*" />
+          <div class="header-text-container">
+            <h1>방송 일정표</h1>
+            <h2 id="schedule-subtitle" class="editable-subtitle">
+              <span class="subtitle-text">주간 방송 일정</span>
+              <input
+                type="text"
+                class="subtitle-input"
+                placeholder="소제목을 입력하세요"
+              />
+            </h2>
+          </div>
+        </header>
+        <table>
+          <thead>
+            <tr>
+              <th>요일</th>
+              <th>일정 내용</th>
+            </tr>
+          </thead>
+          <tbody>
+            <!-- Data for each day will be generated here by script -->
+          </tbody>
+        </table>
+      </div>
+      <div class="button-container">
+        <button id="capture-btn">일정표 이미지로 저장</button>
+      </div>
+      <div id="result"></div>
     </div>
 
     <script>
-        const profileImage = document.getElementById('profile-image');
-        const imageUploadInput = document.getElementById('image-upload-input');
+      const profileImage = document.getElementById("profile-image");
+      const imageUploadInput = document.getElementById("image-upload-input");
 
-        // 저장된 이미지가 있는지 확인하고 불러오기
-        const savedImage = localStorage.getItem('profileImageSrc');
-        if (savedImage) {
-            profileImage.src = savedImage;
+      // 저장된 이미지가 있는지 확인하고 불러오기
+      const savedImage = localStorage.getItem("profileImageSrc");
+      if (savedImage) {
+        profileImage.src = savedImage;
+      }
+
+      profileImage.addEventListener("click", () => {
+        imageUploadInput.click();
+      });
+
+      imageUploadInput.addEventListener("change", (event) => {
+        const file = event.target.files[0];
+        if (file) {
+          const reader = new FileReader();
+          reader.onload = (e) => {
+            profileImage.src = e.target.result;
+            // 이미지 데이터를 localStorage에 저장
+            localStorage.setItem("profileImageSrc", e.target.result);
+          };
+          reader.readAsDataURL(file);
         }
+      });
 
-        profileImage.addEventListener('click', () => {
-            imageUploadInput.click();
-        });
+      // Subtitle editing logic
+      const scheduleSubtitle = document.getElementById("schedule-subtitle");
+      const subtitleText = scheduleSubtitle.querySelector(".subtitle-text");
+      const subtitleInput = scheduleSubtitle.querySelector(".subtitle-input");
 
-        imageUploadInput.addEventListener('change', (event) => {
-            const file = event.target.files[0];
-            if (file) {
-                const reader = new FileReader();
-                reader.onload = (e) => {
-                    profileImage.src = e.target.result;
-                    // 이미지 데이터를 localStorage에 저장
-                    localStorage.setItem('profileImageSrc', e.target.result);
-                };
-                reader.readAsDataURL(file);
-            }
-        });
+      // Load saved subtitle from localStorage
+      const savedSubtitle = localStorage.getItem("scheduleSubtitleText");
+      if (savedSubtitle) {
+        subtitleText.textContent = savedSubtitle;
+        subtitleInput.value = savedSubtitle;
+      }
 
-        const days = ['월요일', '화요일', '수요일', '목요일', '금요일', '토요일', '일요일'];
-        const tableBody = document.querySelector('table tbody');
+      scheduleSubtitle.addEventListener("click", function (e) {
+        if (e.target.classList.contains("subtitle-text")) {
+          scheduleSubtitle.classList.add("editing");
+          subtitleInput.focus();
+        }
+      });
 
-        days.forEach(day => {
-            const row = document.createElement('tr');
-            row.innerHTML = `
+      subtitleInput.addEventListener("focusout", function () {
+        const newText = subtitleInput.value.trim();
+        if (newText === "") {
+          subtitleText.textContent = "소제목을 입력하세요"; // Default text
+          localStorage.removeItem("scheduleSubtitleText");
+        } else {
+          subtitleText.textContent = newText;
+          localStorage.setItem("scheduleSubtitleText", newText);
+        }
+        scheduleSubtitle.classList.remove("editing");
+      });
+
+      subtitleInput.addEventListener("keydown", function (e) {
+        if (e.key === "Enter") {
+          subtitleInput.blur();
+        }
+      });
+
+      const days = [
+        "월요일",
+        "화요일",
+        "수요일",
+        "목요일",
+        "금요일",
+        "토요일",
+        "일요일",
+      ];
+      const tableBody = document.querySelector("table tbody");
+
+      days.forEach((day) => {
+        const row = document.createElement("tr");
+        row.innerHTML = `
                 <td>${day}</td>
                 <td class="schedule-cell">
                     <span class="schedule-text">일정을 입력하려면 클릭하세요</span>
                     <input type="text" class="schedule-input" placeholder="${day} 일정을 입력하세요">
                 </td>
             `;
-            tableBody.appendChild(row);
-        });
+        tableBody.appendChild(row);
+      });
 
-        tableBody.addEventListener('click', function(e) {
-            if (e.target.classList.contains('schedule-text')) {
-                const parentCell = e.target.closest('.schedule-cell');
-                if (parentCell && !parentCell.classList.contains('editing')) {
-                    parentCell.classList.add('editing');
-                    parentCell.querySelector('.schedule-input').focus();
-                }
-            }
-        });
+      tableBody.addEventListener("click", function (e) {
+        if (e.target.classList.contains("schedule-text")) {
+          const parentCell = e.target.closest(".schedule-cell");
+          if (parentCell && !parentCell.classList.contains("editing")) {
+            parentCell.classList.add("editing");
+            parentCell.querySelector(".schedule-input").focus();
+          }
+        }
+      });
 
-        tableBody.addEventListener('focusout', function(e) {
-            if (e.target.classList.contains('schedule-input')) {
-                const input = e.target;
-                const parentCell = input.closest('.schedule-cell');
-                const textSpan = parentCell.querySelector('.schedule-text');
-                
-                if (input.value.trim() === '') {
-                    textSpan.textContent = '일정을 입력하려면 클릭하세요';
-                    textSpan.style.color = '#777';
-                } else {
-                    textSpan.textContent = input.value;
-                    textSpan.style.color = '#333';
-                }
-                parentCell.classList.remove('editing');
-            }
-        });
+      tableBody.addEventListener("focusout", function (e) {
+        if (e.target.classList.contains("schedule-input")) {
+          const input = e.target;
+          const parentCell = input.closest(".schedule-cell");
+          const textSpan = parentCell.querySelector(".schedule-text");
 
-        tableBody.addEventListener('keydown', function(e) {
-            if (e.key === 'Enter' && e.target.classList.contains('schedule-input')) {
-                e.target.blur();
-            }
-        });
+          if (input.value.trim() === "") {
+            textSpan.textContent = "일정을 입력하려면 클릭하세요";
+            textSpan.style.color = "#777";
+          } else {
+            textSpan.textContent = input.value;
+            textSpan.style.color = "#333";
+          }
+          parentCell.classList.remove("editing");
+        }
+      });
 
-        document.getElementById('capture-btn').addEventListener('click', function() {
-            const scheduleArea = document.getElementById('schedule-area');
-            const resultDiv = document.getElementById('result');
-            
-            // If any cell is in editing mode, force it to close before capture
-            const editingCell = scheduleArea.querySelector('.editing');
-            if(editingCell) {
-                editingCell.querySelector('.schedule-input').blur();
-            }
+      tableBody.addEventListener("keydown", function (e) {
+        if (
+          e.key === "Enter" &&
+          e.target.classList.contains("schedule-input")
+        ) {
+          e.target.blur();
+        }
+      });
 
-            resultDiv.textContent = '이미지 생성 중...';
+      document
+        .getElementById("capture-btn")
+        .addEventListener("click", function () {
+          const scheduleArea = document.getElementById("schedule-area");
+          const resultDiv = document.getElementById("result");
 
-            // Allow time for the DOM to update after blur
-            setTimeout(() => {
-                html2canvas(scheduleArea, {
-                    scale: 2,
-                    useCORS: true
-                }).then(canvas => {
-                    const link = document.createElement('a');
-                    link.download = '킹레오_주간일정표.png';
-                    link.href = canvas.toDataURL('image/png');
-                    document.body.appendChild(link);
-                    link.click();
-                    document.body.removeChild(link);
-                    resultDiv.textContent = '캡처 완료! 이미지가 다운로드되었습니다.';
-                    setTimeout(() => { resultDiv.textContent = ''; }, 3000);
-                }).catch(err => {
-                    console.error('oops, something went wrong!', err);
-                    resultDiv.textContent = '오류 발생! 캡처에 실패했습니다.';
-                });
-            }, 100); // 100ms delay
+          // If any cell is in editing mode, force it to close before capture
+          const editingCell = scheduleArea.querySelector(".editing");
+          if (editingCell) {
+            editingCell.querySelector(".schedule-input").blur();
+          }
+          // If subtitle is in editing mode, force it to close before capture
+          const editingSubtitle = document.getElementById("schedule-subtitle");
+          if (
+            editingSubtitle &&
+            editingSubtitle.classList.contains("editing")
+          ) {
+            editingSubtitle.querySelector(".subtitle-input").blur();
+          }
+
+          resultDiv.textContent = "이미지 생성 중...";
+
+          // Allow time for the DOM to update after blur
+          setTimeout(() => {
+            html2canvas(scheduleArea, {
+              scale: 2,
+              useCORS: true,
+            })
+              .then((canvas) => {
+                const link = document.createElement("a");
+                link.download = "킹레오_주간일정표.png";
+                link.href = canvas.toDataURL("image/png");
+                document.body.appendChild(link);
+                link.click();
+                document.body.removeChild(link);
+                resultDiv.textContent =
+                  "캡처 완료! 이미지가 다운로드되었습니다.";
+                setTimeout(() => {
+                  resultDiv.textContent = "";
+                }, 3000);
+              })
+              .catch((err) => {
+                console.error("oops, something went wrong!", err);
+                resultDiv.textContent = "오류 발생! 캡처에 실패했습니다.";
+              });
+          }, 100); // 100ms delay
         });
     </script>
-
-</body>
+  </body>
 </html>
