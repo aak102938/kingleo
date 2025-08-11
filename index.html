@@ -301,7 +301,9 @@
           <div class="header-text-container">
             <h1>방송 일정표</h1>
             <h2 id="schedule-subtitle" class="editable-subtitle">
-              <span class="subtitle-text">소제목을 입력하세요</span>
+              <span class="subtitle-text"
+                >일정 변경 가능성 있음 (본업 따로 있음)</span
+              >
               <input
                 type="text"
                 class="subtitle-input"
@@ -392,15 +394,7 @@
         }
       });
 
-      const days = [
-        "월",
-        "화",
-        "수",
-        "목",
-        "금",
-        "토",
-        "일"
-      ];
+      const days = ["월", "화", "수", "목", "금", "토", "일"];
       const tableBody = document.querySelector("table tbody");
 
       days.forEach((day) => {
