@@ -1,0 +1,321 @@
+<!DOCTYPE html>
+<html lang="ko">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=1200, initial-scale=1.0" />
+    <title>킹레오 주간 일정표</title>
+    <script src="https://html2canvas.hertzen.com/dist/html2canvas.min.js"></script>
+    <style>
+      @import url("https://fonts.googleapis.com/css2?family=Do+Hyeon&family=Noto+Sans+KR:wght@400;700&display=swap");
+      body {
+        font-family: "Noto Sans KR", sans-serif;
+        background-color: #1a1a1a;
+        color: #ffffff;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        min-height: 100vh;
+        margin: 0;
+        padding: 20px;
+        box-sizing: border-box;
+      }
+      .container {
+        width: 100%;
+        max-width: 1200px;
+        background-color: #2c2c2c;
+        border-radius: 16px;
+        box-shadow: 0 4px 20px rgba(0, 0, 0, 0.4);
+        padding: 30px;
+        box-sizing: border-box;
+      }
+      #schedule-area {
+        background-color: #2c2c2c;
+        border-radius: 12px;
+        padding: 20px;
+      }
+      .main-content {
+        display: flex;
+        gap: 30px;
+      }
+      .profile-section {
+        flex: 0 0 250px;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        text-align: center;
+      }
+      #profile-image {
+        width: 150px;
+        height: 150px;
+        border-radius: 50%;
+        border: 4px solid #ff69b4;
+        cursor: pointer;
+        transition: transform 0.3s;
+      }
+      #profile-image:hover {
+        transform: scale(1.05);
+      }
+      #image-upload-input {
+        display: none;
+      }
+      .profile-section h1 {
+        font-family: "Do Hyeon", sans-serif;
+        font-size: 32px;
+        color: #ff69b4;
+        margin-top: 20px;
+        margin-bottom: 10px;
+      }
+      .profile-section .subtitle {
+        font-size: 16px;
+        color: #cccccc;
+      }
+      .schedule-section {
+        flex: 1;
+      }
+      table {
+        width: 100%;
+        border-collapse: collapse;
+        table-layout: fixed;
+      }
+      th,
+      td {
+        border: 1px solid #444444;
+        padding: 10px;
+        text-align: center;
+        height: 80px;
+        vertical-align: middle;
+      }
+      th {
+        background-color: #333333;
+        font-family: "Do Hyeon", sans-serif;
+        font-size: 20px;
+        color: #ffffff;
+      }
+      .time-label {
+        font-weight: bold;
+        font-size: 16px;
+        background-color: #333333;
+      }
+      .schedule-input {
+        display: none;
+        width: 90%;
+        height: 90%;
+        background-color: #444444;
+        color: #ffffff;
+        border: 1px solid #666666;
+        border-radius: 6px;
+        font-family: "Noto Sans KR", sans-serif;
+        font-size: 14px;
+        text-align: center;
+      }
+      .schedule-text {
+        cursor: pointer;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        height: 100%;
+        color: #bbbbbb;
+        font-size: 14px;
+      }
+      .editing .schedule-text {
+        display: none;
+      }
+      .editing .schedule-input {
+        display: block;
+      }
+      .button-container {
+        text-align: center;
+        margin-top: 30px;
+      }
+      #capture-btn {
+        background-color: #ff69b4;
+        color: white;
+        border: none;
+        padding: 12px 24px;
+        font-size: 18px;
+        font-weight: 700;
+        border-radius: 8px;
+        cursor: pointer;
+        transition: background-color 0.3s, transform 0.2s;
+      }
+      #capture-btn:hover {
+        background-color: #ff85c1;
+        transform: translateY(-2px);
+      }
+      #result {
+        text-align: center;
+        margin-top: 20px;
+        font-weight: 700;
+        color: #28a745;
+      }
+    </style>
+  </head>
+  <body>
+    <div class="container">
+      <div id="schedule-area">
+        <div class="main-content">
+          <div class="profile-section">
+            <img
+              id="profile-image"
+              src="https://yt3.ggpht.com/QGXXwPo4iL96yhT6NCbFZ7v0fcNuemEJ2GdiyaCk_Nj_2XqjK09OVZo4iMyN9lEKIKZpFbTInawDHg=s640-c-fcrop64=1,00003333ffffcccc-rw-nd-v1"
+              alt="킹레오 프로필 이미지"
+            />
+            <input type="file" id="image-upload-input" accept="image/*" />
+            <h1>킹레오</h1>
+            <p class="subtitle">종합게임 스트리머</p>
+          </div>
+          <div class="schedule-section">
+            <table>
+              <thead>
+                <tr>
+                  <th>TIME</th>
+                  <th>월</th>
+                  <th>화</th>
+                  <th>수</th>
+                  <th>목</th>
+                  <th>금</th>
+                  <th>토</th>
+                  <th>일</th>
+                </tr>
+              </thead>
+              <tbody>
+                <!-- Schedule rows will be generated by script -->
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+      <div class="button-container">
+        <button id="capture-btn">일정표 이미지로 저장</button>
+      </div>
+      <div id="result"></div>
+    </div>
+
+    <script>
+      const profileImage = document.getElementById("profile-image");
+      const imageUploadInput = document.getElementById("image-upload-input");
+
+      const savedImage = localStorage.getItem("profileImageSrc_new");
+      if (savedImage) {
+        profileImage.src = savedImage;
+      }
+
+      profileImage.addEventListener("click", () => {
+        imageUploadInput.click();
+      });
+
+      imageUploadInput.addEventListener("change", (event) => {
+        const file = event.target.files[0];
+        if (file) {
+          const reader = new FileReader();
+          reader.onload = (e) => {
+            profileImage.src = e.target.result;
+            localStorage.setItem("profileImageSrc_new", e.target.result);
+          };
+          reader.readAsDataURL(file);
+        }
+      });
+
+      const timeSlots = ["저녁 8시 ~", "저녁 10시 ~", "밤 12시 ~"];
+      const days = ["월", "화", "수", "목", "금", "토", "일"];
+      const tableBody = document.querySelector("table tbody");
+
+      timeSlots.forEach((time) => {
+        const row = document.createElement("tr");
+        let rowHtml = `<td class="time-label">${time}</td>`;
+        days.forEach((day) => {
+          rowHtml += `
+            <td class="schedule-cell">
+              <span class="schedule-text">클릭하여 입력</span>
+              <input type="text" class="schedule-input">
+            </td>`;
+        });
+        row.innerHTML = rowHtml;
+        tableBody.appendChild(row);
+      });
+
+      tableBody.addEventListener("click", function (e) {
+        if (e.target.classList.contains("schedule-text")) {
+          const parentCell = e.target.closest(".schedule-cell");
+          if (parentCell && !parentCell.classList.contains("editing")) {
+            parentCell.classList.add("editing");
+            const input = parentCell.querySelector(".schedule-input");
+            input.value =
+              e.target.textContent === "클릭하여 입력"
+                ? ""
+                : e.target.textContent;
+            input.focus();
+          }
+        }
+      });
+
+      const stopEditing = (input) => {
+        const parentCell = input.closest(".schedule-cell");
+        const textSpan = parentCell.querySelector(".schedule-text");
+
+        if (input.value.trim() === "") {
+          textSpan.textContent = "클릭하여 입력";
+          textSpan.style.color = "#bbbbbb";
+        } else {
+          textSpan.textContent = input.value;
+          textSpan.style.color = "#ffffff";
+        }
+        parentCell.classList.remove("editing");
+      };
+
+      tableBody.addEventListener("focusout", function (e) {
+        if (e.target.classList.contains("schedule-input")) {
+          stopEditing(e.target);
+        }
+      });
+
+      tableBody.addEventListener("keydown", function (e) {
+        if (
+          e.key === "Enter" &&
+          e.target.classList.contains("schedule-input")
+        ) {
+          stopEditing(e.target);
+        }
+      });
+
+      document
+        .getElementById("capture-btn")
+        .addEventListener("click", function () {
+          const scheduleArea = document.getElementById("schedule-area");
+          const resultDiv = document.getElementById("result");
+
+          const editingCell = scheduleArea.querySelector(".editing");
+          if (editingCell) {
+            stopEditing(editingCell.querySelector(".schedule-input"));
+          }
+
+          resultDiv.textContent = "이미지 생성 중...";
+
+          setTimeout(() => {
+            html2canvas(scheduleArea, {
+              backgroundColor: "#2c2c2c",
+              scale: 2,
+              useCORS: true,
+            })
+              .then((canvas) => {
+                const link = document.createElement("a");
+                link.download = "킹레오_주간일정표_new.png";
+                link.href = canvas.toDataURL("image/png");
+                document.body.appendChild(link);
+                link.click();
+                document.body.removeChild(link);
+                resultDiv.textContent =
+                  "캡처 완료! 이미지가 다운로드되었습니다.";
+                setTimeout(() => {
+                  resultDiv.textContent = "";
+                }, 3000);
+              })
+              .catch((err) => {
+                console.error("oops, something went wrong!", err);
+                resultDiv.textContent = "오류 발생! 캡처에 실패했습니다.";
+              });
+          }, 150);
+        });
+    </script>
+  </body>
+</html>
