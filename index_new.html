@@ -84,6 +84,7 @@
         text-align: center;
         height: 80px;
         vertical-align: middle;
+        position: relative;
       }
       th {
         background-color: #333333;
@@ -114,8 +115,13 @@
         justify-content: center;
         align-items: center;
         height: 100%;
-        color: #bbbbbb;
-        font-size: 14px;
+        width: 100%;
+        font-size: 16px;
+        font-weight: bold;
+        position: absolute;
+        top: 0;
+        left: 0;
+        border-radius: 0;
       }
       .editing .schedule-text {
         display: none;
@@ -147,6 +153,23 @@
         margin-top: 20px;
         font-weight: 700;
         color: #28a745;
+      }
+      /* Cell colors */
+      .cell-color-blue {
+        background-color: #3d85c6;
+        color: white;
+      }
+      .cell-color-pink {
+        background-color: #ff69b4;
+        color: white;
+      }
+      .cell-color-gray {
+        background-color: #666666;
+        color: #dddddd;
+      }
+      .cell-color-default {
+        background-color: transparent;
+        color: #bbbbbb;
       }
     </style>
   </head>
@@ -219,48 +242,101 @@
       const timeSlots = ["저녁 8시 ~", "저녁 10시 ~", "밤 12시 ~"];
       const days = ["월", "화", "수", "목", "금", "토", "일"];
       const tableBody = document.querySelector("table tbody");
+      const cellColors = ["cell-color-default", "cell-color-blue", "cell-color-pink", "cell-color-gray"];
 
-      timeSlots.forEach((time) => {
-        const row = document.createElement("tr");
-        let rowHtml = `<td class="time-label">${time}</td>`;
-        days.forEach((day) => {
-          rowHtml += `
-            <td class="schedule-cell">
-              <span class="schedule-text">클릭하여 입력</span>
-              <input type="text" class="schedule-input">
-            </td>`;
+      let scheduleData = JSON.parse(localStorage.getItem('scheduleData')) || {
+        '저녁 8시 ~': {
+          '월': { text: '콘텐츠', color: 1 },
+          '화': { text: '콘텐츠', color: 1 },
+          '수': { text: '콘텐츠', color: 1 },
+          '목': { text: '콘텐츠', color: 1 },
+          '금': { text: '콘텐츠', color: 1 },
+          '토': { text: '휴방', color: 2 },
+          '일': { text: '콘텐츠', color: 1 },
+        },
+        '저녁 10시 ~': {
+          '월': { text: '', color: 0 },
+          '화': { text: '', color: 0 },
+          '수': { text: '', color: 0 },
+          '목': { text: '', color: 0 },
+          '금': { text: '', color: 0 },
+          '토': { text: '휴방', color: 2 },
+          '일': { text: '', color: 0 },
+        },
+        '밤 12시 ~': {
+          '월': { text: '', color: 0 },
+          '화': { text: '', color: 0 },
+          '수': { text: '', color: 0 },
+          '목': { text: '', color: 0 },
+          '금': { text: '', color: 0 },
+          '토': { text: '휴방', color: 2 },
+          '일': { text: '', color: 0 },
+        },
+      };
+
+      const saveSchedule = () => {
+        localStorage.setItem('scheduleData', JSON.stringify(scheduleData));
+      }
+
+      const renderTable = () => {
+        tableBody.innerHTML = '';
+        timeSlots.forEach((time) => {
+          const row = document.createElement("tr");
+          let rowHtml = `<td class="time-label">${time}</td>`;
+          days.forEach((day) => {
+            const cellData = scheduleData[time][day];
+            const colorClass = cellColors[cellData.color];
+            const text = cellData.text || ' ';
+            rowHtml += `
+              <td class="schedule-cell" data-time="${time}" data-day="${day}">
+                <span class="schedule-text ${colorClass}">${text}</span>
+                <input type="text" class="schedule-input">
+              </td>`;
+          });
+          row.innerHTML = rowHtml;
+          tableBody.appendChild(row);
         });
-        row.innerHTML = rowHtml;
-        tableBody.appendChild(row);
-      });
+      }
 
       tableBody.addEventListener("click", function (e) {
-        if (e.target.classList.contains("schedule-text")) {
-          const parentCell = e.target.closest(".schedule-cell");
-          if (parentCell && !parentCell.classList.contains("editing")) {
-            parentCell.classList.add("editing");
-            const input = parentCell.querySelector(".schedule-input");
-            input.value =
-              e.target.textContent === "클릭하여 입력"
-                ? ""
-                : e.target.textContent;
-            input.focus();
-          }
+        const target = e.target;
+        if (target.classList.contains("schedule-text")) {
+          const parentCell = target.closest(".schedule-cell");
+          if (parentCell.classList.contains("editing")) return;
+
+          // Change color on simple click
+          const time = parentCell.dataset.time;
+          const day = parentCell.dataset.day;
+          let cellData = scheduleData[time][day];
+          cellData.color = (cellData.color + 1) % cellColors.length;
+          target.className = `schedule-text ${cellColors[cellData.color]}`;
+          saveSchedule();
+        }
+      });
+
+      tableBody.addEventListener("dblclick", function (e) {
+        const target = e.target;
+        if (target.classList.contains("schedule-text")) {
+          const parentCell = target.closest(".schedule-cell");
+          if (parentCell.classList.contains("editing")) return;
+
+          parentCell.classList.add("editing");
+          const input = parentCell.querySelector(".schedule-input");
+          input.value = target.textContent.trim();
+          input.focus();
         }
       });
 
       const stopEditing = (input) => {
         const parentCell = input.closest(".schedule-cell");
         const textSpan = parentCell.querySelector(".schedule-text");
+        const time = parentCell.dataset.time;
+        const day = parentCell.dataset.day;
 
-        if (input.value.trim() === "") {
-          textSpan.textContent = "클릭하여 입력";
-          textSpan.style.color = "#bbbbbb";
-        } else {
-          textSpan.textContent = input.value;
-          textSpan.style.color = "#ffffff";
-        }
+        scheduleData[time][day].text = input.value.trim();
+        textSpan.textContent = scheduleData[time][day].text || ' ';
         parentCell.classList.remove("editing");
+        saveSchedule();
       };
 
       tableBody.addEventListener("focusout", function (e) {
@@ -270,52 +346,46 @@
       });
 
       tableBody.addEventListener("keydown", function (e) {
-        if (
-          e.key === "Enter" &&
-          e.target.classList.contains("schedule-input")
-        ) {
+        if (e.key === "Enter" && e.target.classList.contains("schedule-input")) {
           stopEditing(e.target);
         }
       });
 
-      document
-        .getElementById("capture-btn")
-        .addEventListener("click", function () {
-          const scheduleArea = document.getElementById("schedule-area");
-          const resultDiv = document.getElementById("result");
+      document.getElementById("capture-btn").addEventListener("click", function () {
+        const scheduleArea = document.getElementById("schedule-area");
+        const resultDiv = document.getElementById("result");
 
-          const editingCell = scheduleArea.querySelector(".editing");
-          if (editingCell) {
-            stopEditing(editingCell.querySelector(".schedule-input"));
-          }
+        const editingCell = scheduleArea.querySelector(".editing");
+        if (editingCell) {
+          stopEditing(editingCell.querySelector('.schedule-input'));
+        }
 
-          resultDiv.textContent = "이미지 생성 중...";
+        resultDiv.textContent = "이미지 생성 중...";
 
-          setTimeout(() => {
-            html2canvas(scheduleArea, {
-              backgroundColor: "#2c2c2c",
-              scale: 2,
-              useCORS: true,
-            })
-              .then((canvas) => {
-                const link = document.createElement("a");
-                link.download = "킹레오_주간일정표_new.png";
-                link.href = canvas.toDataURL("image/png");
-                document.body.appendChild(link);
-                link.click();
-                document.body.removeChild(link);
-                resultDiv.textContent =
-                  "캡처 완료! 이미지가 다운로드되었습니다.";
-                setTimeout(() => {
-                  resultDiv.textContent = "";
-                }, 3000);
-              })
-              .catch((err) => {
-                console.error("oops, something went wrong!", err);
-                resultDiv.textContent = "오류 발생! 캡처에 실패했습니다.";
-              });
-          }, 150);
-        });
+        setTimeout(() => {
+          html2canvas(scheduleArea, {
+            backgroundColor: "#2c2c2c",
+            scale: 2,
+            useCORS: true,
+          }).then((canvas) => {
+            const link = document.createElement("a");
+            link.download = "킹레오_주간일정표_new.png";
+            link.href = canvas.toDataURL("image/png");
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
+            resultDiv.textContent = "캡처 완료! 이미지가 다운로드되었습니다.";
+            setTimeout(() => {
+              resultDiv.textContent = "";
+            }, 3000);
+          }).catch((err) => {
+            console.error("oops, something went wrong!", err);
+            resultDiv.textContent = "오류 발생! 캡처에 실패했습니다.";
+          });
+        }, 150);
+      });
+
+      renderTable(); // Initial table render
     </script>
   </body>
 </html>
